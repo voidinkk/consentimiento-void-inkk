@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Consentimiento Informado — Void Inkk</title>
+<style>
+  :root {
+    --bg: #0d0d0d;
+    --surface: #161616;
+    --border: #2a2a2a;
+    --accent: #c8a96e;
+    --accent-dim: rgba(200,169,110,0.15);
+    --text: #e8e8e8;
+    --text-muted: #777;
+    --danger: #e05555;
+    --success: #5cb85c;
+    --radius: 8px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    padding: 0 0 60px;
+  }
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 24px 20px;
+    text-align: center;
+  }
+  header h1 {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  header p { color: var(--text-muted); font-size: 13px; margin-top: 4px; }
+
+  .progress-bar {
+    display: flex;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+  }
+  .step-indicator {
+    flex: 1;
+    min-width: 80px;
+    padding: 12px 8px;
+    text-align: center;
+    font-size: 11px;
+    color: var(--text-muted);
+    border-bottom: 2px solid transparent;
+    cursor: default;
+    white-space: nowrap;
+  }
+  .step-indicator.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+  .step-indicator.done {
+    color: var(--success);
+    border-bottom-color: var(--success);
+  }
+
+  .container { max-width: 640px; margin: 0 auto; padding: 0 16px; }
+
+  .section {
+    display: none;
+    padding-top: 32px;
+  }
+  .section.active { display: block; }
+
+  .section-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 4px;
+  }
+  .section-sub {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 24px;
+  }
+
+  .form-group { margin-bottom: 16px; }
+  .form-group label {
+    display: block;
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+  .form-group label span.req { color: var(--danger); margin-left: 2px; }
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="date"],
+  input[type="number"],
+  select,
+  textarea {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    padding: 11px 14px;
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--accent);
+  }
+  select option { background: #1a1a1a; }
+  textarea { min-height: 80px; resize: vertical; }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  .radio-group { display: flex; gap: 10px; }
+  .radio-btn {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px;
+    text-align: center;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.15s;
+    user-select: none;
+  }
+  .radio-btn.selected {
+    background: var(--accent-dim);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .health-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px;
+    margin-bottom: 12px;
+  }
+  .health-item .q { font-size: 14px; margin-bottom: 10px; }
+  .health-item .q span.req { color: var(--danger); }
+
+  .consent-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    font-size: 13px;
+    line-height: 1.8;
+    max-height: 400px;
+    overflow-y: auto;
+    color: #ccc;
+    margin-bottom: 16px;
+  }
+  .consent-box h3 { color: var(--accent); font-size: 14px; margin: 16px 0 8px; }
+  .consent-box h4 { color: var(--text); font-size: 13px; margin: 12px 0 6px; }
+  .consent-box ul { padding-left: 20px; }
+  .consent-box ul li { margin-bottom: 4px; }
+  .consent-box strong { color: var(--text); }
+
+  .checkbox-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    background: var(--accent-dim);
+    border: 1px solid var(--accent);
+    border-radius: var(--radius);
+    padding: 14px;
+    cursor: pointer;
+  }
+  .checkbox-row input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    margin-top: 2px;
+    accent-color: var(--accent);
+    flex-shrink: 0;
+    cursor: pointer;
+  }
+  .checkbox-row label { cursor: pointer; font-size: 14px; }
+
+  canvas#firma-canvas {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: #fff;
+    display: block;
+    width: 100%;
+    max-width: 560px;
+    height: 180px;
+    cursor: crosshair;
+    touch-action: none;
+  }
+  .firma-label {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+  .btn-limpiar {
+    margin-top: 8px;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    padding: 7px 16px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-size: 13px;
+  }
+  .btn-limpiar:hover { border-color: var(--danger); color: var(--danger); }
+
+  .resumen-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+  .resumen-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px;
+  }
+  .resumen-item .key { font-size: 11px; color: var(--text-muted); }
+  .resumen-item .val { font-size: 15px; font-weight: 600; }
+
+  .alert {
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    font-size: 14px;
+    margin-bottom: 16px;
+  }
+  .alert-warning {
+    background: rgba(220,150,0,0.12);
+    border: 1px solid rgba(220,150,0,0.4);
+    color: #f0c060;
+  }
+
+  .btn-nav {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 28px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+  }
+  .btn {
+    padding: 13px 28px;
+    border-radius: var(--radius);
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.15s;
+    letter-spacing: 0.5px;
+  }
+  .btn-primary {
+    background: var(--accent);
+    color: #0d0d0d;
+    flex: 1;
+  }
+  .btn-primary:hover { background: #dfc080; }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-ghost {
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+  }
+  .btn-ghost:hover { color: var(--text); border-color: #555; }
+
+  #success-screen {
+    display: none;
+    text-align: center;
+    padding: 60px 20px;
+  }
+  #success-screen .icon { font-size: 56px; margin-bottom: 20px; }
+  #success-screen h2 { font-size: 24px; color: var(--accent); margin-bottom: 12px; }
+  #success-screen p { color: var(--text-muted); max-width: 400px; margin: 0 auto; }
+
+  .minor-section {
+    display: none;
+    background: rgba(220,150,0,0.06);
+    border: 1px solid rgba(220,150,0,0.3);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-top: 20px;
+  }
+  .minor-section.visible { display: block; }
+  .minor-section .minor-title {
+    color: #f0c060;
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 16px;
+  }
+
+  @media (max-width: 480px) {
+    .grid-2 { grid-template-columns: 1fr; }
+    .resumen-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Void Inkk</h1>
+  <p>Consentimiento Informado — bypedro.ink</p>
+</header>
+
+<div class="progress-bar">
+  <div class="step-indicator active" id="ind-1">1 · Datos</div>
+  <div class="step-indicator" id="ind-2">2 · Artista</div>
+  <div class="step-indicator" id="ind-3">3 · Salud</div>
+  <div class="step-indicator" id="ind-4">4 · Consentimiento</div>
+  <div class="step-indicator" id="ind-5">5 · Firma</div>
+  <div class="step-indicator" id="ind-6">6 · Confirmar</div>
+</div>
+
+<div class="container">
+
+  <!-- PASO 1: DATOS PERSONALES -->
+  <div class="section active" id="section-1">
+    <div class="section-title">Datos Personales</div>
+    <div class="section-sub">Información del cliente</div>
+
+    <div class="grid-2">
+      <div class="form-group">
+        <label>Nombre <span class="req">*</span></label>
+        <input type="text" id="nombre" placeholder="Tu nombre">
+      </div>
+      <div class="form-group">
+        <label>Apellido <span class="req">*</span></label>
+        <input type="text" id="apellido" placeholder="Tu apellido">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Tipo de Documento <span class="req">*</span></label>
+      <select id="tipoDocumento">
+        <option value="">Selecciona...</option>
+        <option value="RUT">RUT Chileno</option>
+        <option value="Pasaporte">Pasaporte</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Número de Documento <span class="req">*</span></label>
+      <input type="text" id="numeroDocumento" placeholder="12.345.678-9">
+    </div>
+
+    <div class="grid-2">
+      <div class="form-group">
+        <label>Fecha de Nacimiento <span class="req">*</span></label>
+        <input type="date" id="fechaNacimiento">
+      </div>
+      <div class="form-group">
+        <label>Edad</label>
+        <input type="number" id="edad" placeholder="Años" readonly>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Dirección</label>
+      <input type="text" id="direccion" placeholder="Tu dirección">
+    </div>
+
+    <div class="grid-2">
+      <div class="form-group">
+        <label>Teléfono <span class="req">*</span></label>
+        <input type="tel" id="telefono" placeholder="+56 9 1234 5678">
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="email" placeholder="tu@email.com">
+      </div>
+    </div>
+
+    <!-- Sección Tutor (menor de edad) -->
+    <div class="minor-section" id="minor-section">
+      <div class="minor-title">⚠ Datos del Tutor Legal (menor de 18 años)</div>
+      <div class="form-group">
+        <label>Relación con el menor</label>
+        <select id="relacionTutor">
+          <option value="">Selecciona...</option>
+          <option value="Padre">Padre</option>
+          <option value="Madre">Madre</option>
+          <option value="Tutor Legal">Tutor Legal</option>
+        </select>
+      </div>
+      <div class="grid-2">
+        <div class="form-group">
+          <label>Nombre del Tutor</label>
+          <input type="text" id="nombreTutor" placeholder="Nombre">
+        </div>
+        <div class="form-group">
+          <label>Apellido del Tutor</label>
+          <input type="text" id="apellidoTutor" placeholder="Apellido">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>RUT / Documento del Tutor</label>
+        <input type="text" id="rutTutor" placeholder="RUT del tutor">
+      </div>
+    </div>
+
+    <div class="btn-nav">
+      <button class="btn btn-primary" onclick="irA(2)">Siguiente →</button>
+    </div>
+  </div>
+
+  <!-- PASO 2: ARTISTA -->
+  <div class="section" id="section-2">
+    <div class="section-title">Selección de Artista</div>
+    <div class="section-sub">¿Quién te atenderá hoy?</div>
+
+    <div class="form-group">
+      <label>Artista <span class="req">*</span></label>
+      <select id="artista">
+        <option value="">Selecciona un artista...</option>
+        <option value="Pedro">Pedro — Tatuador</option>
+        <!-- Agrega más artistas aquí cuando los necesites -->
+      </select>
+    </div>
+
+    <div class="btn-nav">
+      <button class="btn btn-ghost" onclick="irA(1)">← Volver</button>
+      <button class="btn btn-primary" onclick="irA(3)">Siguiente →</button>
+    </div>
+  </div>
+
+  <!-- PASO 3: SALUD -->
+  <div class="section" id="section-3">
+    <div class="section-title">Información de Salud</div>
+    <div class="section-sub">Responde con veracidad — tus respuestas son confidenciales</div>
+
+    <!-- Las preguntas de salud se generan con JS -->
+    <div id="health-questions"></div>
+
+    <div class="btn-nav">
+      <button class="btn btn-ghost" onclick="irA(2)">← Volver</button>
+      <button class="btn btn-primary" onclick="irA(4)">Siguiente →</button>
+    </div>
+  </div>
+
+  <!-- PASO 4: CONSENTIMIENTO -->
+  <div class="section" id="section-4">
+    <div class="section-title">Consentimiento Legal</div>
+    <div class="section-sub">Lee atentamente antes de firmar</div>
+
+    <div class="consent-box" id="consent-text"></div>
+
+    <div class="checkbox-row" onclick="toggleConsent()">
+      <input type="checkbox" id="acepta-consent">
+      <label for="acepta-consent">He leído y comprendo completamente la información anterior</label>
+    </div>
+
+    <div class="btn-nav">
+      <button class="btn btn-ghost" onclick="irA(3)">← Volver</button>
+      <button class="btn btn-primary" onclick="irA(5)">Siguiente →</button>
+    </div>
+  </div>
+
+  <!-- PASO 5: FIRMA -->
+  <div class="section" id="section-5">
+    <div class="section-title">Firma Digital</div>
+    <div class="section-sub">Usa tu dedo (móvil) o mouse (computador) para firmar</div>
+
+    <p class="firma-label">Firma en el recuadro blanco</p>
+    <canvas id="firma-canvas"></canvas>
+    <button class="btn-limpiar" onclick="limpiarFirma()">Limpiar firma</button>
+
+    <div class="btn-nav">
+      <button class="btn btn-ghost" onclick="irA(4)">← Volver</button>
+      <button class="btn btn-primary" onclick="irA(6)">Siguiente →</button>
+    </div>
+  </div>
+
+  <!-- PASO 6: CONFIRMACIÓN -->
+  <div class="section" id="section-6">
+    <div class="section-title">Confirmar y Enviar</div>
+    <div class="section-sub">Revisa tu información antes de enviar</div>
+
+    <div class="resumen-grid" id="resumen"></div>
+
+    <div class="checkbox-row" style="margin-bottom:20px">
+      <input type="checkbox" id="acepta-final" onclick="toggleEnvio()">
+      <label for="acepta-final">Confirmo que toda la información proporcionada es verídica y correcta</label>
+    </div>
+
+    <button class="btn btn-primary" id="btn-enviar" style="width:100%" disabled onclick="enviarFormulario()">
+      Enviar Consentimiento →
+    </button>
+
+    <div class="btn-nav">
+      <button class="btn btn-ghost" onclick="irA(5)">← Volver</button>
+    </div>
+  </div>
+
+  <!-- PANTALLA ÉXITO -->
+  <div id="success-screen">
+    <div class="icon">✓</div>
+    <h2>Consentimiento enviado</h2>
+    <p>Tu consentimiento ha sido registrado correctamente. Ya puedes comenzar.</p>
+  </div>
+
+</div>
+
+<script>
+// =====================================================
+//  CONFIGURACIÓN — Reemplaza con tu URL de Apps Script
+// =====================================================
+const API_URL = "https://script.google.com/macros/s/AKfycbzmBSMVb3FDv9PTJCvoX6Q5fFOIT8MM5eTUctfKorw3l_BtgvNWBf2a8K36fDUVWfChdQ/exec";
+
+// =====================================================
+//  PREGUNTAS DE SALUD
+// =====================================================
+const preguntasSalud = [
+  { id: "comio",             text: "¿Comiste en las últimas 4 horas?",          detalle: null },
+  { id: "alergias",          text: "¿Tienes alergias?",                          detalle: "detalleAlergias" },
+  { id: "hemofilia",         text: "¿Tienes hemofilia?",                         detalle: null },
+  { id: "sangradoProfuso",   text: "¿Presentas sangrado profuso en todas las heridas?", detalle: null },
+  { id: "aspirina",          text: "¿Consumes aspirina?",                        detalle: null },
+  { id: "aspirina5dias",     text: "¿Has consumido aspirina en los últimos 5 días?",    detalle: null },
+  { id: "hepatitis",         text: "¿Tienes hepatitis?",                         detalle: null },
+  { id: "malaCicatrizacion", text: "¿Tienes mala cicatrización?",                detalle: null },
+  { id: "vih",               text: "¿Tienes VIH?",                              detalle: null },
+  { id: "problemasSalud",    text: "¿Tienes problemas de salud?",               detalle: "detalleSalud" },
+  { id: "tratamientoMedico", text: "¿Estás en tratamiento médico?",             detalle: "detalleTratamiento" },
+  { id: "desmayos",          text: "¿Tienes tendencia a desmayos?",              detalle: null },
+  { id: "fuma",              text: "¿Fumas?",                                    detalle: null },
+  { id: "bebeAlcohol",       text: "¿Bebes alcohol?",                            detalle: null },
+  { id: "bebio3h",           text: "¿Bebiste en las últimas 3 horas?",           detalle: null },
+  { id: "drogas",            text: "¿Consumes drogas?",                          detalle: "detalleDrogas" },
+  { id: "dermatologicos",    text: "¿Tienes problemas dermatológicos?",           detalle: "detallesDerma" },
+  { id: "queloides",         text: "¿Produces queloides?",                       detalle: null },
+  { id: "primerTatuaje",     text: "¿Es tu primer tatuaje?",                     detalle: null },
+  { id: "anestesia",         text: "¿Vienes con anestesia tópica?",              detalle: null },
+];
+
+// =====================================================
+//  ESTADO DEL FORMULARIO
+// =====================================================
+let saludData = {};
+let currentStep = 1;
+let firmaCanvas, firmaCtx, dibujando = false;
+
+// =====================================================
+//  INICIALIZACIÓN
+// =====================================================
+document.addEventListener("DOMContentLoaded", () => {
+  generarPreguntasSalud();
+  inicializarFirma();
+  document.getElementById("fechaNacimiento").addEventListener("change", calcularEdad);
+});
+
+function calcularEdad() {
+  const fn = document.getElementById("fechaNacimiento").value;
+  if (!fn) return;
+  const hoy = new Date();
+  const nacimiento = new Date(fn);
+  let edad = hoy.getFullYear() - nacimiento.getFullYear();
+  const m = hoy.getMonth() - nacimiento.getMonth();
+  if (m < 0 || (m === 0 && hoy.getDate() < nacimiento.getDate())) edad--;
+  document.getElementById("edad").value = edad;
+  document.getElementById("minor-section").classList.toggle("visible", edad < 18);
+}
+
+function generarPreguntasSalud() {
+  const contenedor = document.getElementById("health-questions");
+  preguntasSalud.forEach(p => {
+    const div = document.createElement("div");
+    div.className = "health-item";
+    div.innerHTML = `
+      <div class="q">${p.text} <span class="req">*</span></div>
+      <div class="radio-group">
+        <div class="radio-btn" onclick="seleccionarRespuesta('${p.id}', 'Sí', this)">Sí</div>
+        <div class="radio-btn" onclick="seleccionarRespuesta('${p.id}', 'No', this)">No</div>
+      </div>
+      ${p.detalle ? `<div id="detalle-${p.id}" style="display:none;margin-top:10px">
+        <input type="text" id="${p.detalle}" placeholder="Especifica...">
+      </div>` : ""}
+    `;
+    contenedor.appendChild(div);
+  });
+}
+
+function seleccionarRespuesta(id, valor, el) {
+  saludData[id] = valor;
+  const grupo = el.parentElement;
+  grupo.querySelectorAll(".radio-btn").forEach(b => b.classList.remove("selected"));
+  el.classList.add("selected");
+  const detDiv = document.getElementById("detalle-" + id);
+  if (detDiv) detDiv.style.display = valor === "Sí" ? "block" : "none";
+}
+
+// =====================================================
+//  NAVEGACIÓN ENTRE PASOS
+// =====================================================
+function irA(paso) {
+  if (paso > currentStep && !validarPasoActual()) return;
+  document.getElementById("section-" + currentStep).classList.remove("active");
+  document.getElementById("ind-" + currentStep).classList.remove("active");
+  document.getElementById("ind-" + currentStep).classList.add("done");
+  if (paso === 4) generarTextoConsentimiento();
+  if (paso === 5) redimensionarCanvas();
+  if (paso === 6) generarResumen();
+  currentStep = paso;
+  document.getElementById("section-" + paso).classList.add("active");
+  document.getElementById("ind-" + paso).classList.remove("done");
+  document.getElementById("ind-" + paso).classList.add("active");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function validarPasoActual() {
+  if (currentStep === 1) {
+    const campos = ["nombre","apellido","tipoDocumento","numeroDocumento","fechaNacimiento","telefono"];
+    for (const id of campos) {
+      const el = document.getElementById(id);
+      if (!el.value.trim()) {
+        alert("Por favor completa todos los campos obligatorios.");
+        el.focus();
+        return false;
+      }
+    }
+  }
+  if (currentStep === 2) {
+    if (!document.getElementById("artista").value) {
+      alert("Selecciona un artista.");
+      return false;
+    }
+  }
+  if (currentStep === 4) {
+    if (!document.getElementById("acepta-consent").checked) {
+      alert("Debes leer y aceptar el consentimiento para continuar.");
+      return false;
+    }
+  }
+  if (currentStep === 5) {
+    if (firmaCanvas.toDataURL() === firmaVacia) {
+      alert("Por favor firma en el recuadro antes de continuar.");
+      return false;
+    }
+  }
+  return true;
+}
+
+// =====================================================
+//  TEXTO DE CONSENTIMIENTO (dinámico)
+// =====================================================
+function generarTextoConsentimiento() {
+  const nombre = document.getElementById("nombre").value;
+  const apellido = document.getElementById("apellido").value;
+  const rut = document.getElementById("numeroDocumento").value;
+  const fechaNac = document.getElementById("fechaNacimiento").value;
+  const edad = document.getElementById("edad").value;
+  const direccion = document.getElementById("direccion").value || "no indicada";
+  const artista = document.getElementById("artista").value;
+  const hoy = new Date().toLocaleDateString("es-CL");
+
+  document.getElementById("consent-text").innerHTML = `
+    <h3>CONSENTIMIENTO INFORMADO — VOID INKK</h3>
+    <p>Yo, <strong>${nombre} ${apellido}</strong>, identificado(a) con documento <strong>${rut}</strong>,
+    nacido(a) el <strong>${fechaNac}</strong>, de <strong>${edad}</strong> años,
+    domiciliado(a) en <strong>${direccion}</strong>, declaro voluntariamente lo siguiente:</p>
+
+    <h4>1. INFORMACIÓN DEL PROCEDIMIENTO</h4>
+    <p>He sido informado(a) sobre el procedimiento de tatuaje que me será realizado por el artista
+    <strong>${artista}</strong> en el estudio <strong>Void Inkk</strong> el día <strong>${hoy}</strong>.</p>
+
+    <h4>2. CONDICIÓN DEL ARTISTA Y ACEPTACIÓN DE RIESGO</h4>
+    <p>Declaro conocer y aceptar que el artista <strong>${artista}</strong> se encuentra en proceso de
+    formación como tatuador. He sido informado(a) de esta condición de manera clara y previa a la
+    realización del procedimiento, y acepto voluntariamente someterme al tatuaje bajo estas
+    circunstancias, asumiendo los riesgos adicionales que esto pueda implicar en cuanto a la
+    calidad técnica del resultado. Renuncio expresamente a reclamar indemnización o compensación
+    por resultados estéticos que no cumplan mis expectativas, siempre que el procedimiento haya
+    sido realizado con las medidas de higiene y seguridad correspondientes.</p>
+
+    <h4>3. RIESGOS Y COMPLICACIONES</h4>
+    <p>Entiendo que el procedimiento conlleva riesgos que incluyen:</p>
+    <ul>
+      <li>Reacciones alérgicas a las tintas o materiales utilizados</li>
+      <li>Infecciones bacterianas si no se siguen los cuidados posteriores</li>
+      <li>Cicatrización anormal o formación de queloides</li>
+      <li>Sangrado durante o después del procedimiento</li>
+      <li>Cambios en la apariencia del tatuaje con el tiempo</li>
+      <li>Irregularidades técnicas propias de un artista en formación</li>
+    </ul>
+
+    <h4>4. CUIDADOS POSTERIORES Y RESPONSABILIDAD</h4>
+    <p>Me comprometo a seguir todas las instrucciones de cuidado posterior entregadas por el estudio.
+    Entiendo que el incumplimiento de dichas instrucciones puede resultar en infecciones, pérdida
+    de pigmento, cicatrización deficiente u otros problemas, y que en ese caso <strong>Void Inkk</strong>
+    no será responsable del deterioro del tatuaje. La responsabilidad del cuidado recae exclusivamente
+    en mí una vez abandonado el estudio.</p>
+
+    <h4>5. POLÍTICA DE RETOQUES</h4>
+    <p>Entiendo que cualquier acuerdo sobre retoques o correcciones debe ser pactado expresamente con
+    el artista antes o durante la sesión. Un retoque no pactado no está incluido en las condiciones
+    del servicio y puede estar sujeto a cobro o disponibilidad del artista.</p>
+
+    <h4>6. CONFIDENCIALIDAD DE DATOS</h4>
+    <p>Los datos personales y de salud proporcionados en este formulario son de carácter estrictamente
+    confidencial. Serán utilizados únicamente para evaluar la viabilidad del procedimiento y garantizar
+    la seguridad del cliente. No serán compartidos con terceros bajo ninguna circunstancia, salvo
+    requerimiento legal expreso. El almacenamiento de esta información se rige por principios de
+    seguridad y privacidad.</p>
+
+    <h4>7. AUTORIZACIÓN DE REGISTRO FOTOGRÁFICO</h4>
+    <p>Autorizo a <strong>Void Inkk</strong> a fotografiar y/o registrar en video el proceso y el
+    resultado del tatuaje realizado, con fines de documentación artística y promoción del estudio en
+    redes sociales, portafolio digital u otros medios. En caso de no autorizar este uso, debo
+    comunicarlo expresamente al artista antes del inicio del procedimiento.</p>
+
+    <h4>8. DECLARACIÓN DE SALUD</h4>
+    <p>Certifico que he respondido con veracidad todas las preguntas sobre mi estado de salud y que
+    no he omitido información relevante que pudiera afectar la seguridad del procedimiento. Entiendo
+    que proporcionar información falsa libera de responsabilidad al artista y al estudio ante
+    cualquier complicación derivada de dicha omisión.</p>
+
+    <h4>9. CONSENTIMIENTO</h4>
+    <p>Habiendo leído y comprendido toda la información anterior, otorgo mi consentimiento libre,
+    informado y sin presión de ningún tipo para la realización del procedimiento de tatuaje.</p>
+
+    <p><em>Documento generado el ${new Date().toLocaleString("es-CL")}</em></p>
+  `;
+}
+
+function toggleConsent() {
+  const cb = document.getElementById("acepta-consent");
+  cb.checked = !cb.checked;
+}
+
+// =====================================================
+//  FIRMA DIGITAL
+// =====================================================
+let firmaVacia = "";
+
+function redimensionarCanvas() {
+  const dpr = window.devicePixelRatio || 1;
+  const rect = firmaCanvas.getBoundingClientRect();
+  const w = rect.width || firmaCanvas.offsetWidth || 400;
+  firmaCanvas.width = w * dpr;
+  firmaCanvas.height = 180 * dpr;
+  firmaCanvas.style.height = "180px";
+  firmaCtx = firmaCanvas.getContext("2d");
+  firmaCtx.scale(dpr, dpr);
+  firmaVacia = firmaCanvas.toDataURL();
+}
+function inicializarFirma() {
+  firmaCanvas = document.getElementById("firma-canvas");
+  firmaCtx = firmaCanvas.getContext("2d");
+  redimensionarCanvas();
+  firmaVacia = firmaCanvas.toDataURL();
+
+  // Mouse
+  firmaCanvas.addEventListener("mousedown", e => { dibujando = true; firmaCtx.beginPath(); firmaCtx.moveTo(...pos(e)); });
+  firmaCanvas.addEventListener("mousemove", e => { if (!dibujando) return; firmaCtx.lineTo(...pos(e)); firmaCtx.strokeStyle = "#111"; firmaCtx.lineWidth = 2; firmaCtx.lineCap = "round"; firmaCtx.stroke(); });
+  firmaCanvas.addEventListener("mouseup", () => dibujando = false);
+  firmaCanvas.addEventListener("mouseleave", () => dibujando = false);
+
+  // Touch
+  firmaCanvas.addEventListener("touchstart", e => { e.preventDefault(); dibujando = true; firmaCtx.beginPath(); firmaCtx.moveTo(...posTouch(e)); }, { passive: false });
+  firmaCanvas.addEventListener("touchmove", e => { e.preventDefault(); if (!dibujando) return; firmaCtx.lineTo(...posTouch(e)); firmaCtx.strokeStyle = "#111"; firmaCtx.lineWidth = 2; firmaCtx.lineCap = "round"; firmaCtx.stroke(); }, { passive: false });
+  firmaCanvas.addEventListener("touchend", () => dibujando = false);
+}
+
+function pos(e) {
+  const r = firmaCanvas.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  return [(e.clientX - r.left), (e.clientY - r.top)];
+}
+function posTouch(e) {
+  const r = firmaCanvas.getBoundingClientRect();
+  const t = e.touches[0];
+  return [(t.clientX - r.left), (t.clientY - r.top)];
+}
+function limpiarFirma() {
+  firmaCtx.clearRect(0, 0, firmaCanvas.width, firmaCanvas.height);
+}
+
+// =====================================================
+//  RESUMEN
+// =====================================================
+function generarResumen() {
+  const datos = [
+    { key: "Nombre", val: document.getElementById("nombre").value + " " + document.getElementById("apellido").value },
+    { key: "Documento", val: document.getElementById("numeroDocumento").value },
+    { key: "Edad", val: document.getElementById("edad").value + " años" },
+    { key: "Email", val: document.getElementById("email").value || "—" },
+    { key: "Teléfono", val: document.getElementById("telefono").value },
+    { key: "Artista", val: document.getElementById("artista").value },
+  ];
+  document.getElementById("resumen").innerHTML = datos.map(d => `
+    <div class="resumen-item">
+      <div class="key">${d.key}</div>
+      <div class="val">${d.val}</div>
+    </div>
+  `).join("");
+}
+
+function toggleEnvio() {
+  document.getElementById("btn-enviar").disabled = !document.getElementById("acepta-final").checked;
+}
+
+// =====================================================
+//  ENVÍO DEL FORMULARIO
+// =====================================================
+async function enviarFormulario() {
+  const btn = document.getElementById("btn-enviar");
+  btn.disabled = true;
+  btn.textContent = "Enviando...";
+
+  // Recopilar datos de salud con detalles
+  const saludCompleto = { ...saludData };
+  preguntasSalud.forEach(p => {
+    if (p.detalle) {
+      const el = document.getElementById(p.detalle);
+      if (el) saludCompleto[p.detalle] = el.value;
+    }
+  });
+
+  const edad = parseInt(document.getElementById("edad").value);
+  const payload = {
+    nombre: document.getElementById("nombre").value,
+    apellido: document.getElementById("apellido").value,
+    tipoDocumento: document.getElementById("tipoDocumento").value,
+    numeroDocumento: document.getElementById("numeroDocumento").value,
+    fechaNacimiento: document.getElementById("fechaNacimiento").value,
+    edad: document.getElementById("edad").value,
+    direccion: document.getElementById("direccion").value,
+    telefono: document.getElementById("telefono").value,
+    email: document.getElementById("email").value,
+    artista: document.getElementById("artista").value,
+    ...saludCompleto,
+    firma: firmaCanvas.toDataURL("image/png"),
+    esMenor: edad < 18 ? "Sí" : "No",
+    nombreTutor: document.getElementById("nombreTutor").value,
+    apellidoTutor: document.getElementById("apellidoTutor").value,
+    rutTutor: document.getElementById("rutTutor").value,
+    relacionTutor: document.getElementById("relacionTutor").value,
+  };
+
+  try {
+  await fetch(API_URL, {
+    method: "POST",
+    mode: "no-cors",
+    headers: { "Content-Type": "text/plain" },
+    body: JSON.stringify(payload),
+  });
+
+  document.getElementById("section-6").style.display = "none";
+  document.getElementById("success-screen").style.display = "block";
+  window.scrollTo({ top: 0, behavior: "smooth" });
+
+} catch (err) {
+  alert("Error de conexión. Verifica tu internet e intenta nuevamente.");
+  btn.disabled = false;
+  btn.textContent = "Enviar Consentimiento →";
+}
+}
+</script>
+</body>
+</html>
